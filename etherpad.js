@@ -2,6 +2,17 @@ var page = require('webpage').create();
 var args = require('system').args;
 phantom.cookiesEnabled = true;
 
+if (args.length < 3) {
+	console.log("usage:");
+	console.log("\tphantomjs --cookies-file=<file> etherpad.js <command> <arg>\n");
+	console.log("commands are :");
+	console.log(" - nick : attribute a nickname, given as argument, to the cookie session.");
+	console.log(" - write : write a message given as argument on the pad.");
+	console.log(" - chat : write a message given as argument in the chat box.");
+	console.log("\nwrite and chat messages should be passed as one argument. Thus, if it contains spaces, use quotes to protect them.");
+	phantom.exit();
+}
+
 function focusNick(){
 	return page.evaluate(function(){e = document.getElementById('myusernameedit'); e.focus();return e;});
 }
