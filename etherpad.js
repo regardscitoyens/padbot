@@ -37,6 +37,9 @@ function write(msg) {
 	focusPad();
 	page.sendEvent('keypress', page.event.key.End, null, null, 0x04000000);
 	page.sendEvent('keypress', 'v', null, null, 0x04000000);
+        if (!msg) {
+               page.sendEvent('keypress', page.event.key.Enter);
+	}
 }
 
 function chat(msg) {
@@ -54,8 +57,8 @@ function nick(name) {
 }
 
 function stdinwrite(fh) {
-    line = system.stdin.readLine();
-    if (line) {
+    if (! system.stdin.AtEndOfStream) {
+	line = system.stdin.readLine();
 	write(line);
 	setTimeout(stdinwrite, 500);
     } else
