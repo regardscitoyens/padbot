@@ -1,5 +1,6 @@
 var page = require('webpage').create();
 var args = require('system').args;
+var system = require('system');
 phantom.cookiesEnabled = true;
 
 if (args.length < 3) {
@@ -10,6 +11,7 @@ if (args.length < 3) {
 	console.log(" - write : write a message given as argument on the pad.");
 	console.log(" - chat : write a message given as argument in the chat box.");
 	console.log("\nwrite and chat messages should be passed as one argument. Thus, if it contains spaces, use quotes to protect them.");
+	console.log("if no arguments are passed to write or chat, each line of the standard input is used.");
 	phantom.exit();
 }
 
@@ -51,19 +53,45 @@ function nick(name) {
         page.sendEvent('keypress', page.event.key.Enter);
 }
 
+function stdinwrite(fh) {
+    line = system.stdin.readLine();
+    if (line) {
+	write(line);
+	setTimeout(stdinwrite, 500);
+    } else
+	phantom.exit();
+}
+
+function filechat(fh) {
+    while(line = system.stdin.readLine()) {
+	chat(line);
+    }
+}
+
 page.open(args[1], function () {
-	page.viewportSize = {width: 1024, height: 800};
-	setTimeout(function(){
-		if (args[2] == 'write') {
-			write(args[3]);
-		} else if (args[2] == 'chat') {
-			chat(args[3]);
-		} else if (args[2] == 'nick') {
-			nick(args[3]);
-		} else {
-			console.log("Unknown command "+args[2]);
-		}
-		setTimeout(function(){phantom.exit()}, 500);
-	}, 500);
+    page.viewportSize = {width: 1024, height: 800};
+    setTimeout(function(){
+	var donotexit = 0;
+	if (args[2] == 'write') {
+	    if (args[3]) {
+		write(args[3]);
+	    }else{
+		donotexit = 1;
+		stdinwrite();
+	    }
+	} else if (args[2] == 'chat') {
+	    if (args[3]) {
+		chat(args[3]);
+	    }else{
+		stdinchat();
+	    }
+	} else if (args[2] == 'nick') {
+	    nick(args[3]);
+	} else {
+	    console.log("Unknown command "+args[2]);
+	}
+	if (!donotexit) 
+	    setTimeout(function(){phantom.exit()}, 500);
+    }, 500);
 });
 
